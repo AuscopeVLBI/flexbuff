@@ -14,7 +14,7 @@ import configparser
 
 ## MAIN PROGRAM
 # Parse command line
-parser = argparse.ArgumentParser(prog='vgos_recorder.py', description= 'Configure dBBC3 and Flexbuff')
+parser = argparse.ArgumentParser(prog='oneScan_recorder.py', description= 'Configure dBBC3 and Flexbuff')
 parser.add_argument('filename',  help='Set another config file')
 parser.add_argument('scantime',  help='Show a more detailed output')
 parser.add_argument('nrchannel', help='Number of channels recording per IF', default=1)
@@ -44,23 +44,20 @@ try:
     sf.connect(conn_fbff)
 except:
     raise RuntimeError('Failed to connect to {0}'.format(conn_fbff))
-    
+
 '''
-Here is where you specifiy the number of IFs you are recording. 
-46227:IFA
-46228:IFB
-46229:IFC
-46230:IFD
-46231:IFE
-46232:IFF
-as ex:
+Using the old-type of data recording with parallel streams in different ports.
+46227:IFA  46228:IFB
+46229:IFC  46230:IFD
+46231:IFE  46232:IFF
+as for ex:
 nthreads = {'46227':chans,'46228':chans,'46229':chans,'46230':chans,'46231':chans,'46232':chans}
 '''
-#nthreads = {'46227':chans} 
-nthreads = {'46229':chans,'46230':chans,'46231':chans,'46232':chans} 
+#nthreads = {'46227':chans}
+nthreads = {'46229':chans,'46230':chans,'46231':chans,'46232':chans}
 
 # Send commands and messages via socket communication (encode and decode)
-def fb_send(s, command):
+def fb_send(s,command):
     s.send(command.encode())
     print(s.recv(4096).decode())
 
@@ -75,16 +72,11 @@ def configure(s, thread, nthreads):
         fb_send(s,'record=nthread::{}'.format(nthreads[thread]))
         fb_send(s,'net_port={}'.format(thread))
 #        fb_send(s,'set_disks={}'.format(disks[thread]))
- 
-# Send the command to start recording and request information       
+
+# Send the command to start recording and request information
 def start_rec(s, thread):
         fb_send(s,'runtime=stream{};record=on:{}_{}'.format(thread,output_fn,thread))
         return (fb_send(s,'tstat?'))
-
-## Start the program to record
-# Open a socket and connect to FlexbuffHb
-s=socket.socket()
-sf.connect(conn_fbff)
 
 # We make sure that all streams are not recording
 command = ''
@@ -92,31 +84,31 @@ for thread in nthreads:
     str1 = 'runtime=stream{}; record=off;'.format(thread)
     command = command + str1
 
-fb_send(s,command)
+fb_send(sf,command)
 
 # We configure the main parameters of the VDIF recording
 for thread in nthreads:
-    configure(s, thread, nthreads)
+    configure(sf, thread, nthreads)
 
 print('Now ready to start recording. Press enter to start...')
 time.sleep(0.5)
 
 # Start the recording for each of the threads
 for thread in nthreads:
-    start_rec(s,thread)
+    start_rec(sf,thread)
 
 # Make a While loop to control the recording with sleep(5)
 n=0
 while n < length:
     print('Step: {}\n'.format(str(n*5)))
     for thread in nthreads:
-        print(fb_send(s,'runtime=stream{};evlbi?;tstat?'.format(thread)))
+        print(fb_send(sf,'runtime=stream{};evlbi?;tstat?'.format(thread)))
     n = n + 1
     time.sleep(1)
 
-# Send stop commands to all threads    
+# Send stop commands to all threads
 command = ''
 for thread in nthreads:
-    fb_send(s,'runtime=stream{}; record=off;'.format(thread))
+    fb_send(sf,'runtime=stream{}; record=off;'.format(thread))
 
 sf.close()
