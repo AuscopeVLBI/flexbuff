@@ -14,9 +14,9 @@ import configparser
 
 ## MAIN PROGRAM
 # Parse command line
-parser = argparse.ArgumentParser(prog='oneScan_recorder.py', description= 'Configure dBBC3 and Flexbuff')
-parser.add_argument('filename',  help='Set another config file')
-parser.add_argument('scantime',  help='Show a more detailed output')
+parser = argparse.ArgumentParser(prog='oneScan_recorder.py', description= 'Record one single scan given a output filename length and nr of channels')
+parser.add_argument('filename',  help='Output filename')
+parser.add_argument('scantime',  help='Length of the scan')
 parser.add_argument('nrchannel', help='Number of channels recording per IF', default=1)
 parser.add_argument('configFile', nargs='?', help='Set the config file', default='/opt/configStation.ini')
 parser.add_argument('-v', '--version', action='version',version='%(prog)s 1.0')
