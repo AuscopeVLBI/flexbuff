@@ -19,6 +19,7 @@ parser.add_argument('filename',  help='Output filename')
 parser.add_argument('scantime',  help='Length of the scan')
 parser.add_argument('nrchannel', help='Number of channels recording per IF', default=1)
 parser.add_argument('configFile', nargs='?', help='Set the config file', default='/opt/configStation.ini')
+parser.add_argument('recordingMode', help='Specify recording mode 0=old 1=new', default=0)
 parser.add_argument('-v', '--version', action='version',version='%(prog)s 1.0')
 
 args       = parser.parse_args()

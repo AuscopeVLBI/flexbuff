@@ -108,7 +108,6 @@ fbComms(sf,'record=off')
 sf.send('datastream?'.encode())
 elem_ds = sf.recv(1024).decode().split(':')
 
-
 for ds in range(int(elem_ds[1])):
    if ds+1 ==  elem_ds[1]:
        # If it is the last datastream then
