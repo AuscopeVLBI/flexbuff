@@ -1,18 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 12 16:37:06 2019
 
 @author: gmolera
 
-Usage: ./oneScan_recorder.py <filename> <scan_time> <number_chans_per_IF>
+Usage: ./oneScan_recorder.py <filename> <scan_time> <number_chans_per_IF> <bandwidth>
 """
 
 import socket, time
 import argparse
 import configparser
 
-vdif_frame_ch = ('0','0','1','1','0','0')
+activeIF      = ('1','1','1','1','1','1')
 ip_orig       = ('15','16','17','18','19','20')
 ifboards      = ('a','b','c','d','e','f')
 
@@ -21,15 +21,17 @@ ifboards      = ('a','b','c','d','e','f')
 parser = argparse.ArgumentParser(prog='oneScan_recorder.ds.py', description= 'Record one single scan given a output filename length and nr of channels width datastreams')
 parser.add_argument('filename',  help='Output filename')
 parser.add_argument('scantime',  help='Length of the scan')
-parser.add_argument('nrchannel', help='Number of channels recording per IF', default=1)
+parser.add_argument('nrchannel', help='Number of channels recording per IF')
+parser.add_argument('bandwidth', help='Bandwidth of the IF channel', default=32)
 parser.add_argument('configFile', nargs='?', help='Set the config file', default='/opt/configStation.ini')
-parser.add_argument('recordingMode', help='Specify recording mode 0=old 1=new', default=0)
+parser.add_argument('recordingMode', nargs='?', help='Specify recording mode 0=old 1=new', default=0)
 parser.add_argument('-v', '--version', action='version',version='%(prog)s 1.0')
 
 args       = parser.parse_args()
 outputFn   = args.filename
 length     = int(args.scantime)
 chans      = args.nrchannel
+bandwidth  = args.bandwidth
 iniFile    = args.configFile
 mode       = args.recordingMode
 
@@ -52,7 +54,7 @@ except:
     raise RuntimeError('Failed to connect to {0}'.format(conn_fbff))
 
 '''
-Using the new style of data recording. 
+Using the new style of data recording.
 In this case all the streams are sent via the same network port.
 '''
 
@@ -64,7 +66,7 @@ def fbComms(s,command):
 # Configure basic parameters for the Flexbuff recorder
 
 def configure(s, thread, nthreads):
-        data_rate = 128*int(nthreads[thread])
+        data_rate = 4*bandwidth*int(nthreads[thread])
         fbComms(s,'datastream=reset')
         fbComms(s,'mtu=9000')
         fbComms(s,'net_protocol=udpsnor:128M:128M:1')
@@ -74,9 +76,9 @@ def configure(s, thread, nthreads):
 
 
 '1. Having the vdif_frame_ch, we can determine which datastreams should be active '
-for board in range(6):
-    if vdif_frame_ch[board] == '1':
-        fbComms(sf,'datastream = add : {}.vdif : 192.168.1.{}/{}.*'.format(ifboards[board],ip_orig[board],station))
+#for board in range(6):
+#    if activeIF[board] == '1':
+#        fbComms(sf,'datastream = add : {}.vdif : 192.168.1.{}/{}.*'.format(ifboards[board],ip_orig[board],station))
 
 '''2. We concatenate everything into the same file as they all use same port and different thread IDs
 I don't like to create a file with termination abcd that depend on the ifs, but it's one way.
@@ -100,9 +102,9 @@ while n < length:
     print(fbComms(sf,'evlbi?;tstat?'))
     n = n + 1
     time.sleep(1)
- 
+
 fbComms(sf,'record=off')
- 
+
 'We do some clean up before shutting the door'
 # Clean the datastreams
 sf.send('datastream?'.encode())
@@ -113,7 +115,7 @@ for ds in range(int(elem_ds[1])):
        # If it is the last datastream then
        fbComms(sf,'datastream = remove :{}'.format(elem_ds[ds+2][0:-2]))
    else:
-       # If there are more than one datastream 
+       # If there are more than one datastream
        fbComms(sf,'datastream = remove :{}'.format(elem_ds[ds+2]))
 
 sf.close()
