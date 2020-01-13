@@ -8,8 +8,10 @@ Created on Tue Mar 12 16:37:06 2019
 Usage: ./check_recording.py <filename>
 
 """
-import subprocess
+import subprocess, os
 import argparse
+import matplotlib.pyplot as plt
+import numpy as np
 
 parser = argparse.ArgumentParser(prog='check_recording.py', description='')
 parser.add_argument('filename', help='Full Name of the file recorded')
@@ -23,6 +25,7 @@ nch  = args.nchannels
 bw   = args.bandwidth
 ch   = args.channel
 
+# Unless we do a very short recording we are probably happy to have 5 second integration
 fftpoints = 320e3
 inttime   = 5
 
@@ -52,9 +55,36 @@ f.close()
 # Then modify the parameters related to the observation
 # sourceFormat derived
 
-
 subprocess.call(['swspectrometer','inifile.tmp.ini','/home/observer/vbs_tmp/{}'.format(inFn)])
+spec_filename = 'single_channel.bin'
+
+# visualize the spectra
+
+fsize = os.path.getsize(spec_filename)
+Nspec = np.int(np.floor(0.5*fsize/(fftpoints + 1)))
+Nfft  = np.int(fftpoints/2+1)
+Sps    = np.zeros((Nspec,Nfft))
+
+fd = open(spec_filename,'rb')
+
+for ip in np.arange(Nspec):
+    read_data = np.fromfile(file=fd, dtype='float32', count=Nfft)
+    Sps[ip]   = read_data
+
+Aspec = np.sum(Sps,axis=0)/Nspec
+
+df = 2*bw/fftpoints
+jf = np.arange(Nfft)
+ff = df*jf
+        
+# Make a plot
+plt.plot(ff,np.log10(Aspec))
+plt.ylabel('Spectrum')
+plt.xlabel('Freq [Hz]')
+plt.title('Last spectrum read from the file')
+plt.show()
 
 # Let's clean our mess
 #subprocess.call(['rm','inifile.tmp.ini'])
+#subprocess.call(['rm','single_channel*'])
 #subprocess.call(['fusermount','-u','~/vbs_tmp'])
