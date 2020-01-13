@@ -8,7 +8,7 @@ Created on Tue Mar 12 16:37:06 2019
 Usage: ./check_recording.py <filename>
 
 """
-import subprocess, os
+import subprocess, os, time
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,7 +26,7 @@ bw   = args.bandwidth
 ch   = args.channel
 
 # Unless we do a very short recording we are probably happy to have 5 second integration
-fftpoints = 320e3
+fftpoints = 32e3
 inttime   = 5
 
 'Mount the file recording into Flexbuff style disks'
@@ -40,13 +40,15 @@ subprocess.call(['vbs_fs','-n','4','-I','{}'.format(inFn),'/home/observer/vbs_tm
 # First create the inifile
 p = subprocess.Popen(['cp','/home/observer/AuscopeVLBI/flexbuff/config/inifile.ini','inifile.ini'])
 
+time.sleep(0.5)
+
 sourceFormat = 'VDIF_8000-{}-{}-2'.format(4*int(bw)*int(nch),nch)
 
 s = open('inifile.ini').read()
-s.replace('VDIF_8000-0000-00-00',sourceFormat)
-s.replace('SourceChannels    = 0','SourceChannels    = {}'.format(nch))
-s.replace('BandwidthHz       = 0','BandwidthHz       = {}'.format(bw))
-s.replace('UseFile1Channel   = 0','UseFile1Channel   = {}'.format(ch))
+s = s.replace('VDIF_8000-0000-00-00',sourceFormat)
+s = s.replace('SourceChannels    = 0','SourceChannels    = {}'.format(nch))
+s = s.replace('BandwidthHz       = 0','BandwidthHz       = {}'.format(bw))
+s = s.replace('UseFile1Channel   = 0','UseFile1Channel   = {}'.format(ch))
 
 f = open('inifile.tmp.ini','w')
 f.write(s)
@@ -56,7 +58,7 @@ f.close()
 # sourceFormat derived
 
 subprocess.call(['swspectrometer','inifile.tmp.ini','/home/observer/vbs_tmp/{}'.format(inFn)])
-spec_filename = 'single_channel.bin'
+spec_filename = 'single_channel_swspec.bin'
 
 # visualize the spectra
 
@@ -73,10 +75,10 @@ for ip in np.arange(Nspec):
 
 Aspec = np.sum(Sps,axis=0)/Nspec
 
-df = 2*bw/fftpoints
+df = 2*np.int(bw)/np.int(fftpoints)
 jf = np.arange(Nfft)
 ff = df*jf
-        
+
 # Make a plot
 plt.plot(ff,np.log10(Aspec))
 plt.ylabel('Spectrum')
