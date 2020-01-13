@@ -5,7 +5,7 @@ Created on Tue Mar 12 16:37:06 2019
 
 @author: gmolera
 
-Usage: ./check_recording.py <filename>
+Usage: ./check_recording.py <filename> nchannels bandwidth channel [zoom] min max frequencies
 
 """
 import subprocess, os, time
@@ -13,17 +13,24 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-parser = argparse.ArgumentParser(prog='check_recording.py', description='')
-parser.add_argument('filename', help='Full Name of the file recorded')
-parser.add_argument('nchannels', help='Number of channels per IF')
-parser.add_argument('bandwidth', help='Bandwidth of the channel')
-parser.add_argument('channel', help='Select channel to display')
+parser = argparse.ArgumentParser(prog='check_recording.py', description='Check recording allows to verify the spectra of the recorded data in a Flexbuff')
+parser.add_argument('filename',   help='Full name of the recorded file')
+parser.add_argument('nchannels',  help='Number of channels per IF')
+parser.add_argument('bandwidth',  help='Bandwidth of the channel')
+parser.add_argument('channel',    help='Select channel to display')
+parser.add_argument('--zoom', '-z', help='specify a zoom window around the desired line', aaction="store_true", default=False)
+parser.add_argument('frequencies', help='Zoom interval')
 
 args = parser.parse_args()
 inFn = args.filename
 nch  = args.nchannels
 bw   = args.bandwidth
 ch   = args.channel
+zoom = args.zoom
+
+if zoom==True:
+    minfrq = args.frequencies[0]
+    maxfrq = args.frequencies[1]
 
 # Unless we do a very short recording we are probably happy to have 5 second integration
 fftpoints = 32e3
@@ -80,13 +87,21 @@ jf = np.arange(Nfft)
 ff = df*jf
 
 # Make a plot
-plt.plot(ff,np.log10(Aspec))
-plt.ylabel('Spectrum')
-plt.xlabel('Freq [Hz]')
-plt.title('Last spectrum read from the file')
-plt.show()
+if zoom == False:
+    plt.plot(ff,np.log10(Aspec))
+    plt.ylabel('Spectrum')
+    plt.xlabel('Freq [Hz]')
+    plt.title('Average spectra')
+    plt.show()
+else: #Zoom == True:
+    plt.plot(ff[minfrq:maxfrq],np.log10(Aspec[minfrq:maxfrq]))
+    plt.ylabel('Spectrum')
+    plt.xlabel('Freq [Hz]')
+    plt.title('Spectral zoom')
+    plt.show()
 
 # Let's clean our mess
-#subprocess.call(['rm','inifile.tmp.ini'])
-#subprocess.call(['rm','single_channel*'])
-#subprocess.call(['fusermount','-u','~/vbs_tmp'])
+subprocess.call(['rm','inifile.ini'])
+subprocess.call(['rm','inifile.tmp.ini'])
+subprocess.call(['rm','single_channel*'])
+subprocess.call(['fusermount','-u','~/vbs_tmp'])
