@@ -14,7 +14,7 @@ import socket, time
 import argparse
 import configparser
 
-activeIF      = ('1','1','1','1','1','1')
+activeIF      = ('1','1','0','0','0','0')
 ip_orig       = ('15','16','17','18','19','20')
 ifboards      = ('a','b','c','d','e','f')
 
@@ -41,7 +41,7 @@ mode       = args.recordingMode
 config = configparser.ConfigParser()
 config.sections()
 config.read(iniFile)
-print('Using the initial setup from {}'.format(args.configFile))
+print('Using the initial setup from {}'.format(iniFile))
 
 # FLEXBUFF CONFIGURATION
 station   = config['DBBC3']['Station']
