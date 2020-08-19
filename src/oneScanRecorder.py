@@ -14,9 +14,10 @@ import socket, time
 import argparse
 import configparser
 
-activeIF      = ('1','1','0','0','0','0')
+activeIF      = ('1','1','1','1','1','1')
 ip_orig       = ('15','16','17','18','19','20')
 ifboards      = ('a','b','c','d','e','f')
+FlexbuffIp    = 'xxx.xxx.xxx.xxx'
 
 ## MAIN PROGRAM
 # Parse command line
@@ -41,11 +42,11 @@ mode       = args.recordingMode
 config = configparser.ConfigParser()
 config.sections()
 config.read(iniFile)
-print('Using the initial setup from {}'.format(iniFile))
+print('Using the initial setup from {}'.format(args.configFile))
 
 # FLEXBUFF CONFIGURATION
 station   = config['DBBC3']['Station']
-conn_fbff = (config['FLEXBUFF']['FbAddress'],int( config['FLEXBUFF']['FbPort']))
+conn_fbff = (FlexbuffIP,2620))
 
 'FLEXBUFF CONFIGURATION'
 print('Setting up Flexbuff {}\n'.format(station))
