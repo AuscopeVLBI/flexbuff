@@ -9,6 +9,14 @@ Usage: ./list_vbsdisks.py
 """
 import os
 import time
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', dest='save2file', help='write results to disk', action='store_true', default=False)
+parser.add_argument('-s', dest='disp_screen', help='write results to screen', action='store_true', default=False)
+parser.add_argument('-v', dest='verbose', help='verbose', action='store_true', default=False)
+
+args = parser.parse_args()
 
 start = time.process_time()
 
@@ -39,12 +47,25 @@ for disk in range(total_disks):
 
     progress(int(101*disk/total_disks))
 
-print(f'\nHow many sessions have we found : {len(sessions)}')
+if args.disp_screen:
+    print(f'\nHow many sessions have we found : {len(sessions)}')
 
-size_trigger = 1e9
-for session in sessions:
-    if sessions[session] > size_trigger:
-        print(f'Session: {session:9} and total size {sessions[session]/(1024*1024*1024):10.3f} TB')
+    if args.verbose:
+        size_trigger = 0
+    else:
+        size_trigger = 1e9
+    for session in sessions:
+        if sessions[session] > size_trigger:
+            print(f'Session: {session:9} and total size {sessions[session]/(1024*1024*1024):10.3f} GB')
 
+    print(f'Total time spent {time.process_time() - start}')
 
-print(f'Total time spent {time.process_time() - start}')
+if args.save2file:
+    fn = '/tmp/disk_used.txt'
+    f = open(fn, 'w')
+    for session in sessions:
+        if sessions[session] > 1e9:
+            f.write(f'{session},{sessions[session]}\n')
+    f.close()
+    print(f'\ndata stored in {fn}')
+
