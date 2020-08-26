@@ -7,7 +7,7 @@ Created on Tue Aug 17 12:37:06 2020
 
 Usage: ./list_vbsdisks.py
 """
-import os
+import os, socket
 import time
 import argparse
 
@@ -20,7 +20,11 @@ args = parser.parse_args()
 
 start = time.process_time()
 
-total_disks: int = 36
+# Determine the amount of disks per flexbuff
+host: str = socket.gethostname()
+num_disks: dict = {'flexbuffhb':34,'flexbuffyg':36,'flexbuffke':36,'flexbuffcd':12,'flexbuflyg':5}
+
+total_disks: int = num_disks[host]
 sessions = {}
 
 def progress(percent=0, width=30):
@@ -50,15 +54,13 @@ for disk in range(total_disks):
 if args.disp_screen:
     print(f'\nHow many sessions have we found : {len(sessions)}')
 
+    size_trigger: float = 1e9
     if args.verbose:
         size_trigger = 0
-    else:
-        size_trigger = 1e9
+
     for session in sessions:
         if sessions[session] > size_trigger:
             print(f'Session: {session:9} and total size {sessions[session]/(1024*1024*1024):10.3f} GB')
-
-    print(f'Total time spent {time.process_time() - start}')
 
 if args.save2file:
     fn = '/tmp/disk_used.txt'
@@ -69,3 +71,4 @@ if args.save2file:
     f.close()
     print(f'\ndata stored in {fn}')
 
+print(f'Total time spent {time.process_time() - start}')
