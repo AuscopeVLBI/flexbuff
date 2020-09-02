@@ -26,6 +26,7 @@ num_disks: dict = {'flexbuffhb':34,'flexbuffyg':36,'flexbuffke':36,'flexbuffcd':
 
 total_disks: int = num_disks[host]
 sessions = {}
+ctimes = {}
 
 def progress(percent=0, width=30):
     left = width * percent // 100
@@ -42,7 +43,10 @@ for disk in range(total_disks):
         for name in dirs:
             session = name.split('_')[0]
             if session not in sessions:
-                sessions.update( {session:0})
+                sessions.update({session:0})
+                time_created = time.strftime('%d %b %Y',time.gmtime(os.path.getctime(f'{root}/{name}')))
+                ctimes.update({session:time_created})
+
 
         for name in files:
             session = name.split('_')[0]
@@ -60,14 +64,14 @@ if args.disp_screen:
 
     for session in sessions:
         if sessions[session] > size_trigger:
-            print(f'Session: {session:9} and total size {sessions[session]/(1024*1024*1024):10.3f} GB')
+            print(f'Session: {session:9}, size {sessions[session]/(1024*1024*1024):10.3f} GB, time stamp {ctimes[session]}')
 
 if args.save2file:
     fn = '/tmp/disk_used.txt'
     f = open(fn, 'w')
     for session in sessions:
         if sessions[session] > 1e9:
-            f.write(f'{session},{sessions[session]}\n')
+            f.write(f'{session},{sessions[session]},{ctimes[session]}\n')
     f.close()
     print(f'\ndata stored in {fn}')
 
