@@ -53,7 +53,8 @@ for disk in range(total_disks):
             fsize = os.path.getsize(os.path.join(root,name))
             sessions[session] += fsize
 
-    progress(int(101*disk/total_disks))
+    if args.disp_screen:
+        progress(int(101*disk/total_disks))
 
 if args.disp_screen:
     print(f'\nHow many sessions have we found : {len(sessions)}')
