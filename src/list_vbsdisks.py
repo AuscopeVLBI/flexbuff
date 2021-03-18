@@ -22,7 +22,7 @@ start = time.process_time()
 
 # Determine the amount of disks per flexbuff
 host: str = socket.gethostname()
-num_disks: dict = {'flexbuffhb':34,'flexbuffyg':36,'flexbuffke':36,'flexbuffcd':12,'flexbuflyg':5}
+num_disks: dict = {'flexbuffhb':34,'flexbuffyg':36,'flexbuffke':36,'flexbuffcd':12,'flexbuflyg':5,'flexbuflcd':10}
 
 total_disks: int = num_disks[host]
 sessions = {}
