@@ -18,6 +18,7 @@ parser.add_argument('filename',   help='Full name of the recorded file')
 parser.add_argument('nchannels',  help='Number of channels per IF')
 parser.add_argument('bandwidth',  help='Bandwidth of the channel')
 parser.add_argument('channel',    help='Select channel to display')
+parser.add_argument('integration', help='integration time')
 parser.add_argument('-zf',dest='zoomfreq',nargs='+',type=float,metavar='N')
 
 args = parser.parse_args()
@@ -25,10 +26,11 @@ inFn: str = args.filename
 nch: str  = args.nchannels
 bw: str   = args.bandwidth
 ch: str   = args.channel
+dts: str = args.integration
 
 # Unless we do a very short recording we are probably happy to have 5 second integration
-fftpoints: int = 320e3
-inttime: int = 10
+fftpoints: int = 3200e3
+inttime: int = int(dts)
 
 # frequency resolution
 df: float = 2*int(bw)*1e6/fftpoints
@@ -59,6 +61,7 @@ s = s.replace('SourceChannels    = 0',f'SourceChannels = {nch}')
 s = s.replace('BandwidthHz       = 0',f'BandwidthHz = {bw}')
 s = s.replace('UseFile1Channel   = 0',f'UseFile1Channel = {ch}')
 s = s.replace('FFTpoints = 0',f'FFTpoints = {fftpoints}')
+print(inttime)
 s = s.replace('FFTIntegrationTimeSec = 0',f'FFTIntegrationTimeSec = {inttime}')
 
 f = open('inifile.tmp.ini','w')
@@ -85,7 +88,8 @@ for ip in np.arange(Nspec):
     read_data = np.fromfile(file=fd, dtype='float32', count=Nfft)
     Sps[ip]   = read_data
 
-Aspec = np.sum(Sps,axis=0)/Nspec
+#Aspec = np.sum(Sps,axis=0)/Nspec
+Aspec = read_data
 
 jf = np.arange(Nfft)
 ff = df*jf
